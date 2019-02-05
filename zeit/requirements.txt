@@ -1,0 +1,11 @@
+starlette
+uvicorn
+python-multipart
+aiofiles
+aiohttp
+scikit-image
+keras
+matplotlib
+numpy
+tensorflow
+h5py
