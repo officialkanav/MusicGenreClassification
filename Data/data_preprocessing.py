@@ -5,13 +5,35 @@ import os
 from tqdm import tqdm
 import librosa.display
 import matplotlib.pyplot as plt
+import pandas as pd
 #from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 class Dataset:
-    def __init__(self,song_folder,new_folder):
+    def __init__(self,song_folder,new_folder, csv_location):
         self.song_folder = song_folder
         self.new_folder = new_folder
+        self.csv_location = csv_location
+    
+    def remove_unlabelled(self):
+        track = pd.read_csv(self.csv_location)
+        y = track.iloc[:,1:2].values
+        ID = track.iloc[:,0:1].values
+        y = y[2:,:]
+        ID = ID[2:,:]
         
+        label = {}
+        for i,j in zip(ID,y):
+          label[str(i[0])] = j[0]
+      
+        for image in os.listdir(self.new_folder):
+          path = os.path.join(self.new_folder,image)
+          file_name = image
+          file_name = file_name[:-6]
+          file_name = "".join(file_name)
+          genre = label.get(file_name,'notfound')
+          if genre == 'notfound':
+            os.remove(path)
+            
     def chop_image(self, img_path, out_path):
         img = cv2.imread(img_path)
         height, width, channels = img.shape
@@ -31,7 +53,8 @@ class Dataset:
         fig.tight_layout()
         fig.savefig(output)
         self.chop_image(output, out_path)
-    
+   
+            
     def create_data(self):
         for i in tqdm(self.song_folder):
             folder = os.path.join(self.song_folder,i)
@@ -48,3 +71,4 @@ class Dataset:
                     self.spec_create(path,output)
                 except:
                     print('Corrupt file {}'.format(path))
+        self.remove_unlabelled()
